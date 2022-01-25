@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import anndata
 from scipy.spatial import distance
-import scanpy.api as sc
+import scanpy as sc
 from collections import OrderedDict
 from collections import defaultdict
 

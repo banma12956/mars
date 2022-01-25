@@ -3,7 +3,7 @@
 @author: maria
 '''
   
-import scanpy.api as sc
+import scanpy as sc
 import numpy as np
 import urllib.request
 import gzip
