@@ -13,8 +13,8 @@ from anndata import AnnData
 # import matplotlib as mpl
 
 from args_parser import get_parser
-from model.mars import MARS
-from model.experiment_dataset import ExperimentDataset
+from mars_model.mars import MARS
+from mars_model.experiment_dataset import ExperimentDataset
 import warnings
 warnings.filterwarnings('ignore')
 
