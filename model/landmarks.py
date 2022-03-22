@@ -6,7 +6,7 @@ Created on Mar 25, 2019
 
 import numpy as np
 import torch
-from sklearn.cluster import k_means_
+#from sklearn.cluster import k_means_
 from sklearn.cluster import KMeans
 
 
@@ -65,7 +65,7 @@ def init_step(dataset, model, device, pretrained, mode='kmeans',n_clusters=None)
     
     if mode=='kmeans++':
         if not pretrained: # find centroids in original space
-            landmarks = k_means_._init_centroids(X.cpu().numpy(), n_clusters, 'k-means++')
+            landmarks = KMeans._init_centroids(X.cpu().numpy(), n_clusters, 'k-means++')
             landmarks = torch.tensor(landmarks, device=device)
             landmarks = landmarks.to(device)
             lndmk_encoded,_ = model(landmarks)
@@ -73,7 +73,7 @@ def init_step(dataset, model, device, pretrained, mode='kmeans',n_clusters=None)
         else:
             X = X.to(device)
             encoded,_ = model(X)
-            landmarks = k_means_._init_centroids(encoded.data.cpu().numpy(), n_clusters, 'k-means++')
+            landmarks = KMeans._init_centroids(encoded.data.cpu().numpy(), n_clusters, 'k-means++')
             lndmk_encoded = torch.tensor(landmarks, device=device)
     
     elif mode=='kmeans': # run kmeans clustering

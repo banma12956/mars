@@ -25,11 +25,11 @@ def set_scores(scores, y_true, y_pred, scoring):
         if metric=='accuracy':
             scores[metric] = metrics.accuracy_score(y_true, y_pred)
         elif metric=='precision':
-            scores[metric] = metrics.precision_score(y_true, y_pred, labels, average='macro')
+            scores[metric] = metrics.precision_score(y_true, y_pred, labels=labels, average='macro')
         elif metric=='recall':
-            scores[metric] = metrics.recall_score(y_true, y_pred, labels, average='macro')
+            scores[metric] = metrics.recall_score(y_true, y_pred, labels=labels, average='macro')
         elif metric=='f1_score':
-            scores[metric] = metrics.f1_score(y_true, y_pred, labels, average='macro')
+            scores[metric] = metrics.f1_score(y_true, y_pred, labels=labels, average='macro')
         elif metric=='nmi':
             scores[metric] = metrics.normalized_mutual_info_score(y_true, y_pred)
         elif metric=='adj_mi':
