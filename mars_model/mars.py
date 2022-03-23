@@ -58,7 +58,7 @@ class MARS:
         self.lr = params.learning_rate
         self.lr_gamma = params.lr_scheduler_gamma
         self.step_size = params.lr_scheduler_step
-        self.tau = tau
+        self.tau = tau  # weight of test landmarks update
         
  
     def init_model(self, x_dim, hid_dim, z_dim, p_drop, device):
@@ -82,7 +82,7 @@ class MARS:
         optim: optimizer
         """
         print('Pretraining..')
-        for _ in range(self.epochs_pretrain):
+        for _ in range(self.epochs_pretrain):   # 25
             for _, batch in enumerate(self.pretrain_loader):
                 x,_,_ = batch
                 x = x.to(self.device)
@@ -117,6 +117,11 @@ class MARS:
             self.model.load_state_dict(torch.load(self.MODEL_FILE))    
         test_iter = iter(self.test_loader)
         landmk_tr, landmk_test = init_landmarks(self.n_clusters, self.train_loader, self.test_loader, self.model, self.device)
+
+        pre_score = self.assign_labels(torch.stack(landmk_test).squeeze(), evaluation_mode)
+        print("after pre_training, score is")
+        print(pre_score)
+
         optim, optim_landmk_test = self.init_optim(list(self.model.encoder.parameters()), landmk_test, self.lr)
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optim,
                                                gamma=self.lr_gamma,
@@ -151,15 +156,12 @@ class MARS:
         
         landmk_all = landmk_tr+[torch.stack(landmk_test).squeeze()]
         
-        adata_test, eval_results = self.assign_labels(landmk_all[-1], evaluation_mode)
-        
-        adata = self.save_result(tr_iter, adata_test, save_all_embeddings)
-        
+        eval_results = self.assign_labels(landmk_all[-1], evaluation_mode)
+                
         if evaluation_mode:
-            return adata, landmk_all, eval_results
+            return eval_results
         
-        return adata, landmk_all
-    
+        return landmk_all
     
     def save_result(self, tr_iter, adata_test, save_all_embeddings):
         """Saving embeddings from labeled and unlabeled dataset, ground truth labels and 
@@ -209,13 +211,11 @@ class MARS:
         dists = euclidean_dist(encoded_test, landmk_test)
         y_pred = torch.min(dists, 1)[1]
         
-        adata = self.pack_anndata(x_test, cells, encoded_test, y_true, y_pred)
-        
         eval_results = None
         if evaluation_mode:
             eval_results = compute_scores(y_true, y_pred)
             
-        return adata, eval_results
+        return eval_results
     
     def pack_anndata(self, x_input, cells, embedding, gtruth=[], estimated=[]):
         """Pack results in anndata object.
@@ -259,12 +259,12 @@ class MARS:
         for task in task_idx:
             
             task = int(task)
-            x, y, _ = next(tr_iter[task])
+            x, y, _ = next(tr_iter[task])   # gradient descent
             x, y = x.to(self.device), y.to(self.device)
             encoded,_ = self.model(x)
             curr_landmk_tr = compute_landmarks_tr(encoded, y, landmk_tr[task], tau=self.tau)
             landmk_tr[task] = curr_landmk_tr.data # save landmarks
-            
+        # update test landmarks
         for landmk in landmk_test:
             landmk.requires_grad=True
             
@@ -278,7 +278,7 @@ class MARS:
         loss.backward()
         optim_landmk_test.step()
                 
-        # update embedding
+        # get train tasks loss and accuracy
         self.set_requires_grad(True)
         for landmk in landmk_test:
             landmk.requires_grad=False
@@ -303,7 +303,7 @@ class MARS:
         if ntasks>0:
             mean_accuracy = total_accuracy / ntasks
         
-        # test part
+        # test part loss
         x,y,_ = next(test_iter)
         x = x.to(self.device)
         encoded,_ = self.model(x)
