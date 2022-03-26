@@ -4,6 +4,7 @@ Implementation of MARS model.
 @author: maria
 '''
 
+import time
 import torch
 import pandas as pd
 import numpy as np
@@ -22,7 +23,7 @@ from mars_model.metrics import compute_scores
 class MARS:
     
     def __init__(self, n_clusters, params, labeled_data, unlabeled_data, pretrain_data=None, 
-                 val_split=1.0, hid_dim_1=1000, hid_dim_2=100, p_drop=0.0, tau=0.2):
+                 val_split=1.0, hid_dim_1=1000, hid_dim_2=100, p_drop=0.0, tau=0.05):
         """Initialization of MARS.
         n_clusters: number of clusters in the unlabeled meta-dataset
         params: parameters of the MARS model
@@ -59,6 +60,8 @@ class MARS:
         self.lr_gamma = params.lr_scheduler_gamma
         self.step_size = params.lr_scheduler_step
         self.tau = tau  # weight of test landmarks update
+
+        print("Parameters: tau {}, epochs_pretrain {}, epochs {}".format(tau, self.epochs_pretrain, self.epochs))
         
  
     def init_model(self, x_dim, hid_dim, z_dim, p_drop, device):
@@ -82,7 +85,9 @@ class MARS:
         optim: optimizer
         """
         print('Pretraining..')
-        for _ in range(self.epochs_pretrain):   # 25
+        begintime = time.time()
+        for i in range(self.epochs_pretrain):   # 25
+            print("Finish epoch", i, end="\r")
             for _, batch in enumerate(self.pretrain_loader):
                 x,_,_ = batch
                 x = x.to(self.device)
@@ -91,7 +96,9 @@ class MARS:
                 optim.zero_grad()              
                 loss.backward()                    
                 optim.step() 
-    
+        elapsed = round(time.time() - begintime, 2)
+        print('Processed pretraining in {} seconds\n'.format(elapsed))
+
     def train(self, evaluation_mode=True, save_all_embeddings=True):
         """Train model.
         evaluation_mode: if True, validates model on the unlabeled dataset. In the evaluation mode, ground truth labels
@@ -116,19 +123,26 @@ class MARS:
         else:
             self.model.load_state_dict(torch.load(self.MODEL_FILE))    
         test_iter = iter(self.test_loader)
-        landmk_tr, landmk_test = init_landmarks(self.n_clusters, self.train_loader, self.test_loader, self.model, self.device)
 
+        begintime = time.time()
+        print("Initializing landmarks")
+        landmk_tr, landmk_test = init_landmarks(self.n_clusters, self.train_loader, self.test_loader, self.model, self.device)
+        elapsed = round(time.time() - begintime, 2)
+        print('Processed landmarks initialization in {} seconds\n'.format(elapsed))
+    
         pre_score = self.assign_labels(torch.stack(landmk_test).squeeze(), evaluation_mode)
         print("after pre_training, score is")
-        print(pre_score)
+        print(pre_score, "\n")
 
         optim, optim_landmk_test = self.init_optim(list(self.model.encoder.parameters()), landmk_test, self.lr)
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optim,
                                                gamma=self.lr_gamma,
                                                step_size=self.step_size)
         
+        begintime = time.time()
         best_acc = 0
         for epoch in range(1, self.epochs+1):
+            print("Finish epoch", epoch, end="\r")
             self.model.train()
             loss_tr, acc_tr, landmk_tr, landmk_test = self.do_epoch(tr_iter, test_iter,
                                               optim, optim_landmk_test,
@@ -150,7 +164,9 @@ class MARS:
                 postfix = ' (Best)' if acc_val >= best_acc else ' (Best: {})'.format(best_acc)
                 print('Val loss: {}, acc: {}{}'.format(loss_val, acc_val, postfix))
             lr_scheduler.step()
-            
+        elapsed = round(time.time() - begintime, 2)
+        print('Processed training in {} seconds'.format(elapsed))
+
         if self.val_loader is None:
             best_state = self.model.state_dict() # best is last
         

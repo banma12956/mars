@@ -23,19 +23,19 @@ def set_scores(scores, y_true, y_pred, scoring):
     
     for metric in scoring:
         if metric=='accuracy':
-            scores[metric] = metrics.accuracy_score(y_true, y_pred)
+            scores[metric] = round(metrics.accuracy_score(y_true, y_pred), 4)
         elif metric=='precision':
-            scores[metric] = metrics.precision_score(y_true, y_pred, labels=labels, average='macro')
+            scores[metric] = round(metrics.precision_score(y_true, y_pred, labels=labels, average='macro'), 4)
         elif metric=='recall':
-            scores[metric] = metrics.recall_score(y_true, y_pred, labels=labels, average='macro')
+            scores[metric] = round(metrics.recall_score(y_true, y_pred, labels=labels, average='macro'), 4)
         elif metric=='f1_score':
-            scores[metric] = metrics.f1_score(y_true, y_pred, labels=labels, average='macro')
+            scores[metric] = round(metrics.f1_score(y_true, y_pred, labels=labels, average='macro'), 4)
         elif metric=='nmi':
-            scores[metric] = metrics.normalized_mutual_info_score(y_true, y_pred)
+            scores[metric] = round(metrics.normalized_mutual_info_score(y_true, y_pred), 4)
         elif metric=='adj_mi':
-            scores[metric] = metrics.adjusted_mutual_info_score(y_true, y_pred)
+            scores[metric] = round(metrics.adjusted_mutual_info_score(y_true, y_pred), 4)
         elif metric=='adj_rand':
-            scores[metric] = metrics.adjusted_rand_score(y_true, y_pred)
+            scores[metric] = round(metrics.adjusted_rand_score(y_true, y_pred), 4)
                 
                 
 def hungarian_match(y_true, y_pred):
