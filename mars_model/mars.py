@@ -86,13 +86,13 @@ class MARS:
         """
         print('Pretraining..')
         begintime = time.time()
-        for i in range(self.epochs_pretrain):   # 25
+        for i in range(500):   # 25
             print("Finish epoch", i, end="\r")
             for _, batch in enumerate(self.pretrain_loader):
                 x,_,_ = batch
                 x = x.to(self.device)
-                _, decoded = self.model(x)
-                loss = reconstruction_loss(decoded, x)
+                mu, logsigma, decoded = self.model(x)
+                loss = self.model.cal_loss(x, decoded, mu, logsigma)
                 optim.zero_grad()              
                 loss.backward()                    
                 optim.step() 
@@ -133,6 +133,7 @@ class MARS:
         print("\nAfter pretraining, evaluate")
         pre_score = self.assign_labels(torch.stack(landmk_test).squeeze(), evaluation_mode)
 
+        """
         optim, optim_landmk_test = self.init_optim(list(self.model.encoder.parameters()), landmk_test, self.lr)
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optim,
                                                gamma=self.lr_gamma,
@@ -177,6 +178,7 @@ class MARS:
             return eval_results
         
         return landmk_all
+        """
     
     def save_result(self, tr_iter, adata_test, save_all_embeddings):
         """Saving embeddings from labeled and unlabeled dataset, ground truth labels and 
