@@ -129,10 +129,9 @@ class MARS:
         landmk_tr, landmk_test = init_landmarks(self.n_clusters, self.train_loader, self.test_loader, self.model, self.device)
         elapsed = round(time.time() - begintime, 2)
         print('Processed landmarks initialization in {} seconds\n'.format(elapsed))
-    
+   
+        print("\nAfter pretraining, evaluate")
         pre_score = self.assign_labels(torch.stack(landmk_test).squeeze(), evaluation_mode)
-        print("after pre_training, score is")
-        print(pre_score, "\n")
 
         optim, optim_landmk_test = self.init_optim(list(self.model.encoder.parameters()), landmk_test, self.lr)
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optim,
@@ -228,10 +227,23 @@ class MARS:
         y_pred = torch.min(dists, 1)[1]
         
         eval_results = None
-        if evaluation_mode:
-            eval_results = compute_scores(y_true, y_pred)
+
+        # if evaluation_mode:
+        scores = compute_scores(y_true, y_pred)
+        print('Acc {}, F1_score {}, Precision {}, Recall {}, F1_mi {}, Pre_mi {}, Rec_mi {}, NMI {}, Adj_Rand {}, Adj_MI {}'.format( 
+                    scores['accuracy'],scores['f1_score'],scores['precision'],scores['recall'],scores['nmi'],scores['pre_mi'],scores['rec_mi'],scores['f1_mi'],
+                    scores['adj_rand'],scores['adj_mi']))
+
+        largest_g = np.load("/data/liyunxiang/meta/data/airways/largest_g.npy")
+        largest_g = torch.from_numpy(largest_g)
+        largest_g_idx = [i for i in range(len(y_true)) if y_true[i] in largest_g]
+        print("Evaluate the largest 100 genomes, total", len(largest_g_idx), "contigs")
+        scores = compute_scores(y_true[largest_g_idx], y_pred[largest_g_idx])
+        print('Acc {}, F1_score {}, Precision {}, Recall {}, F1_mi {}, Pre_mi {}, Rec_mi {}, NMI {}, Adj_Rand {}, Adj_MI {}'.format( 
+                    scores['accuracy'],scores['f1_score'],scores['precision'],scores['recall'],scores['nmi'],scores['pre_mi'],scores['rec_mi'],scores['f1_mi'],
+                    scores['adj_rand'],scores['adj_mi']))
             
-        return eval_results
+        #return eval_results
     
     def pack_anndata(self, x_input, cells, embedding, gtruth=[], estimated=[]):
         """Pack results in anndata object.

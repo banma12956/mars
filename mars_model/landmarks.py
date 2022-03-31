@@ -51,7 +51,6 @@ def init_landmarks(n_clusters, tr_load, test_load, model, device, mode='kmeans',
     with torch.no_grad():
         [lndmk.copy_(kmeans_init_tr[idx])  for idx,lndmk in enumerate(lndmk_tr)]
         [lndmk_test[i].copy_(kmeans_init_test[i,:]) for i in range(kmeans_init_test.shape[0])]
-        
     return lndmk_tr, lndmk_test
 
 

@@ -25,7 +25,7 @@ def init_seed(opt):
 def init_dataset():
     """Init dataset"""
 
-    test_maca = MacaData('tabula-muris-senis-facs-official-annotations.h5ad', annotation_type='cell_ontology_class_reannotated')
+    test_maca = MacaData('tabula-muris-senis-facs_mars.h5ad', annotation_type='cell_ontology_class_reannotated')
     
     print(test_maca.adata)
     test_maca.adata = test_maca.preprocess_data(test_maca.adata)
@@ -79,8 +79,8 @@ def main():
         
         n_clusters = len(np.unique(unlabeled_data.y))
         mars = MARS(n_clusters, params, labeled_data, unlabeled_data, pretrain_data[idx], hid_dim_1=1000, hid_dim_2=100)
-        adata, landmarks, scores = mars.train(evaluation_mode=True)
-        mars.name_cell_types(adata, landmarks, cell_type_name_map)
+        scores = mars.train(evaluation_mode=True)
+        #mars.name_cell_types(adata, landmarks, cell_type_name_map)
         
         #adata.write(params.MODEL_DIR+tissue+'/'+tissue+'.h5ad')
         
@@ -90,7 +90,7 @@ def main():
         avg_score_direct[idx,3] = scores['adj_rand']
         avg_score_direct[idx,4] = scores['adj_mi']
         
-        print('{}: Acc {}, F1_score {}, NMI {}, Adj_Rand {}, Adj_MI {}'.format(unlabeled_data.metadata, 
+        print('{}: Acc {:.4f}, F1_score {:.4f}, NMI {:.4f}, Adj_Rand {:.4f}, Adj_MI {:.4f}'.format(unlabeled_data.metadata, 
                 scores['accuracy'],scores['f1_score'],scores['nmi'],
                 scores['adj_rand'],scores['adj_mi']))
         

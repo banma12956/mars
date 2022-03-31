@@ -6,7 +6,7 @@ import numpy as np
 import sklearn.metrics as metrics
 from scipy.optimize import linear_sum_assignment 
 
-def compute_scores(y_true, y_pred, scoring={'accuracy','precision','recall','nmi',
+def compute_scores(y_true, y_pred, scoring={'accuracy','precision','recall','pre_mi','rec_mi','f1_mi','nmi',
                                                 'adj_rand','f1_score','adj_mi'}):
     y_true = y_true.cpu().numpy()
     y_pred = y_pred.cpu().numpy()
@@ -20,16 +20,23 @@ def compute_scores(y_true, y_pred, scoring={'accuracy','precision','recall','nmi
 
 def set_scores(scores, y_true, y_pred, scoring):
     labels=list(set(y_true))
+    #print("difference", set(y_true) - set(y_pred))
     
     for metric in scoring:
         if metric=='accuracy':
             scores[metric] = round(metrics.accuracy_score(y_true, y_pred), 4)
         elif metric=='precision':
-            scores[metric] = round(metrics.precision_score(y_true, y_pred, labels=labels, average='macro'), 4)
+            scores[metric] = round(metrics.precision_score(y_true, y_pred, labels=labels, average='macro',zero_division=0), 4)
         elif metric=='recall':
             scores[metric] = round(metrics.recall_score(y_true, y_pred, labels=labels, average='macro'), 4)
         elif metric=='f1_score':
             scores[metric] = round(metrics.f1_score(y_true, y_pred, labels=labels, average='macro'), 4)
+        elif metric=='pre_mi':
+            scores[metric] = round(metrics.precision_score(y_true, y_pred, labels=labels, average='micro',zero_division=0), 4)
+        elif metric=='rec_mi':
+            scores[metric] = round(metrics.recall_score(y_true, y_pred, labels=labels, average='micro'), 4)
+        elif metric=='f1_mi':
+            scores[metric] = round(metrics.f1_score(y_true, y_pred, labels=labels, average='micro'), 4)
         elif metric=='nmi':
             scores[metric] = round(metrics.normalized_mutual_info_score(y_true, y_pred), 4)
         elif metric=='adj_mi':
