@@ -86,7 +86,7 @@ class MARS:
         """
         print('Pretraining..')
         begintime = time.time()
-        for i in range(500):   # 25
+        for i in range(self.epochs_pretrain):   # 25
             print("Finish epoch", i, end="\r")
             for _, batch in enumerate(self.pretrain_loader):
                 x,_,_ = batch
@@ -130,9 +130,9 @@ class MARS:
         elapsed = round(time.time() - begintime, 2)
         print('Processed landmarks initialization in {} seconds\n'.format(elapsed))
    
-        print("\nAfter pretraining, evaluate")
+        #print("After pretraining, evaluate")
         pre_score = self.assign_labels(torch.stack(landmk_test).squeeze(), evaluation_mode)
-
+        return pre_score
         """
         optim, optim_landmk_test = self.init_optim(list(self.model.encoder.parameters()), landmk_test, self.lr)
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optim,
@@ -223,7 +223,7 @@ class MARS:
         
         x_test,y_true, cells = next(test_iter) # cells are needed because dataset is in random order
         x_test = x_test.to(self.device)
-        encoded_test,_ = self.model(x_test)
+        encoded_test,_,_ = self.model(x_test)
         
         dists = euclidean_dist(encoded_test, landmk_test)
         y_pred = torch.min(dists, 1)[1]
@@ -232,6 +232,7 @@ class MARS:
 
         # if evaluation_mode:
         scores = compute_scores(y_true, y_pred)
+        """
         print('Acc {}, F1_score {}, Precision {}, Recall {}, F1_mi {}, Pre_mi {}, Rec_mi {}, NMI {}, Adj_Rand {}, Adj_MI {}'.format( 
                     scores['accuracy'],scores['f1_score'],scores['precision'],scores['recall'],scores['nmi'],scores['pre_mi'],scores['rec_mi'],scores['f1_mi'],
                     scores['adj_rand'],scores['adj_mi']))
@@ -244,8 +245,8 @@ class MARS:
         print('Acc {}, F1_score {}, Precision {}, Recall {}, F1_mi {}, Pre_mi {}, Rec_mi {}, NMI {}, Adj_Rand {}, Adj_MI {}'.format( 
                     scores['accuracy'],scores['f1_score'],scores['precision'],scores['recall'],scores['nmi'],scores['pre_mi'],scores['rec_mi'],scores['f1_mi'],
                     scores['adj_rand'],scores['adj_mi']))
-            
-        #return eval_results
+        """
+        return scores
     
     def pack_anndata(self, x_input, cells, embedding, gtruth=[], estimated=[]):
         """Pack results in anndata object.

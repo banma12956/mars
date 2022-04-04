@@ -26,13 +26,13 @@ def set_scores(scores, y_true, y_pred, scoring):
         if metric=='accuracy':
             scores[metric] = round(metrics.accuracy_score(y_true, y_pred), 4)
         elif metric=='precision':
-            scores[metric] = round(metrics.precision_score(y_true, y_pred, labels=labels, average='macro',zero_division=0), 4)
+            scores[metric] = round(metrics.precision_score(y_true, y_pred, labels=labels, average='macro'), 4)
         elif metric=='recall':
             scores[metric] = round(metrics.recall_score(y_true, y_pred, labels=labels, average='macro'), 4)
         elif metric=='f1_score':
             scores[metric] = round(metrics.f1_score(y_true, y_pred, labels=labels, average='macro'), 4)
         elif metric=='pre_mi':
-            scores[metric] = round(metrics.precision_score(y_true, y_pred, labels=labels, average='micro',zero_division=0), 4)
+            scores[metric] = round(metrics.precision_score(y_true, y_pred, labels=labels, average='micro'), 4)
         elif metric=='rec_mi':
             scores[metric] = round(metrics.recall_score(y_true, y_pred, labels=labels, average='micro'), 4)
         elif metric=='f1_mi':

@@ -75,10 +75,10 @@ mars = MARS(n_clusters, params, [annotated], unannnotated, pretrain_data, hid_di
 
 # Run MARS in evaluation mode. Ground truth annotations will be used to evaluate MARS performance and scores will be returned
 # return only unannotated dataset with save_all_embeddings=False
-scores = mars.train(evaluation_mode=True, save_all_embeddings=False) # evaluation mode
+mars.train(evaluation_mode=True, save_all_embeddings=False) # evaluation mode
 
 # Check MARS performance
-print(scores)
+#print(scores)
 
 '''
 # Visualize in MARS embedding space

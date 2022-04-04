@@ -83,7 +83,7 @@ def init_step(dataset, model, device, pretrained, mode='kmeans',n_clusters=None)
             lndmk_encoded,_ = model(landmarks)
         else:
             X = X.to(device)
-            encoded,_ = model(X)
+            encoded,_,_ = model(X)
             kmeans = KMeans(n_clusters, random_state=0).fit(encoded.data.cpu().numpy())
             lndmk_encoded = torch.tensor(kmeans.cluster_centers_, device=device)
     

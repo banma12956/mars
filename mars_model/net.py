@@ -2,6 +2,7 @@
 Network architecture.
 '''
 
+import torch
 import torch.nn as nn
 
 def full_block(in_features, out_features, p_drop):
@@ -50,7 +51,7 @@ class FullNet(nn.Module):
         
         x = self.encoder(x)
         mu = self.mu(x)
-        logsigma = self.self.softplus(self.logsigma(x))
+        logsigma = self.softplus(self.logsigma(x))
         latent = self.reparameterize(mu, logsigma)
 
         decoded = self.decoder(latent)

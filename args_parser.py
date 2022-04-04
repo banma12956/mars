@@ -18,12 +18,12 @@ def get_parser():
     parser.add_argument('-nepoch', '--epochs',
                         type=int,
                         help='number of epochs to train for',
-                        default=300)    # 30
+                        default=0)    # 30
 
     parser.add_argument('-nepoch_pretrain', '--epochs_pretrain',
                         type=int,
                         help='number of epochs to pretrain for',
-                        default=200)     # 25
+                        default=500)     # 25
 
     parser.add_argument('-source_file','--model_file',
                         type = str,
